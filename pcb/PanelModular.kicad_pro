@@ -55,7 +55,12 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        "courtyards_overlap|58394384|59080001|5615cee4-9f5e-452c-9713-9dbbfe2af303|928f119d-214c-46b4-9ba0-dc76323200fb",
+        "courtyards_overlap|90190001|107679999|b6aaca2c-5d57-468c-933e-00187fceaf5c|a1398208-f9d2-4780-b587-a4f9aff344e4",
+        "courtyards_overlap|94060001|107209999|a1398208-f9d2-4780-b587-a4f9aff344e4|be0c7e91-9d4e-4e9d-a3ef-98d96a3382e1",
+        "courtyards_overlap|94654001|109534999|a1398208-f9d2-4780-b587-a4f9aff344e4|9d366d31-fbc4-4ad8-85c1-cf4b6b192b31"
+      ],
       "meta": {
         "version": 2
       },
@@ -93,7 +98,7 @@
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
         "silk_over_copper": "warning",
-        "silk_overlap": "warning",
+        "silk_overlap": "ignore",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
         "starved_thermal": "ignore",
@@ -451,7 +456,9 @@
       "version": 3
     },
     "net_colors": null,
-    "netclass_assignments": null,
+    "netclass_assignments": {
+      "+U_LED": "Power"
+    },
     "netclass_patterns": [
       {
         "netclass": "Power",
