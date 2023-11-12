@@ -1,6 +1,7 @@
 # ModularControlPanel
 Mechanics, PCB and Software for my modular control panel that is used with my cnc machine driven by LinuxCnc
 
+If you need the mechanic parts, just open an issue and tell me.
 
 This bboard delivers:
 - 12 Key inputs
@@ -19,3 +20,9 @@ This bboard delivers:
 all switches are connected by:
 - https://aliexpress.com/item/4000502453714.html
 - https://aliexpress.com/item/1005001317075834.html
+
+## Front view of the control panel mockup:
+![](https://github.com/TheBlueManCoding/ModularControlPanel/blob/main/img/mockup-front.jpg)
+
+#PCB with some connected switches, leds and the mist cooling controller
+![](https://github.com/TheBlueManCoding/ModularControlPanel/blob/main/img/mockup-pcb.jpg)
