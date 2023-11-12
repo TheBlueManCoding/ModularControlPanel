@@ -1,114 +1,75 @@
 
-#include <Adafruit_SSD1306.h>
+
 #include <Arduino.h>
 
 #include <Button.h>
 #include <TCA9534.h>
 #include <Wire.h>
+#include <PCF8574.h>
+#include <CoreMutex.h>
 
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <ArduinoMqttClient.h>
+#include <Inputs.h>
+#include <Outputs.h>
 
-WiFiClient wifiClient;
-MqttClient mqttClient(wifiClient);
-
-Adafruit_SSD1306 display(64, 48, &Wire, -1);
+mutex_t mutex;
+CoreMutex cMutex(&mutex);
 
 TCA9534 ioex;
-const uint8_t IOEX_ADDR = 0x70 >> 1; // A0 = A1 = A2 = 0
+PCF8574 ioex_extLED;
 
-Button powerButton(20);
+InputGpio inp(0);
+InputAnalog inpa(1);
 
-const int POWER_EN_3V3 = 19;
+OutputGpio outMistRemoteEn(22, false);
+OutputGpio outPowerEn3v3(19, false);
+OutputTCA9534 outLed1(&ioex, 0, false);
+OutputTCA9534 outLed2(&ioex, 1, false);
+OutputTCA9534 outLed3(&ioex, 2, false);
+OutputTCA9534 outLed4(&ioex, 3, false);
+OutputTCA9534 outLed5(&ioex, 4, false);
+OutputTCA9534 outLed6(&ioex, 5, false);
+OutputTCA9534 outLed7(&ioex, 6, false);
+OutputTCA9534 outLed8(&ioex, 7, false);
+OutputPCF8574 outExtLed1(&ioex_extLED, 0, true);
+OutputPCF8574 outExtLed2(&ioex_extLED, 1, true);
+OutputPCF8574 outExtLed3(&ioex_extLED, 2, true);
+OutputPCF8574 outExtLed4(&ioex_extLED, 3, true);
 
-void setup()
-{
+InputButton inputPowerKey(20, false, &outLed1);
+//Button powerButton(POWER_KEY);
+
+
+void setup() {
   Serial.begin(9600);
   Serial.println("startup"); 
-  
-  powerButton.begin();
 
   Wire.setSDA(12);
   Wire.setSCL(13);
+  Wire.begin();
 
   Wire1.setSDA(14);
   Wire1.setSCL(15);
-  Wire.begin();
   Wire1.begin();
 
   ioex.attach(Wire);
-  ioex.setDeviceAddress(IOEX_ADDR);
+  ioex.setDeviceAddress(0x70 >> 1);
   ioex.output(0x00);
-  ioex.config(TCA9534::Config::OUT);
-  pinMode(POWER_EN_3V3, OUTPUT); 
- 
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false);  // initialize with the I2C addr 0x3C (for the 64x48)
-  display.clearDisplay();
-  display.drawRoundRect(0, 0, 64, 48, 4, SSD1306_WHITE);
+
+  ioex_extLED.attach(Wire1);
+  ioex_extLED.setDeviceAddress(0x70 >> 1);
+  ioex_extLED.output(0xFF);
   
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(10,10);
-  display.println("startup");
-  display.display();
+  outLed1.begin();
+  outLed2.begin();
+  outExtLed1.begin();
+
+  inputPowerKey.begin();
   
-  Serial.println("Attempting to connect to WPA SSID");
-  while (WiFi.begin("dlink", "datpasswurt") != WL_CONNECTED) {
-    // failed, retry
-    Serial.print(".");
-    delay(5000);
-  }
-
-  Serial.println("You're connected to the network");
-  Serial.println();
-
-  Serial.println("Attempting to connect to the MQTT broker");
-
-  if (!mqttClient.connect("192.168.0.45", 1883)) {
-    Serial.print("MQTT connection failed! Error code = ");
-    Serial.println(mqttClient.connectError());
-
-    while (1);
-  }
-  Serial.println("You're connected to the MQTT broker!");
-  Serial.println();
+  outLed1.write(1);
+  outLed2.write(1);
 }
 
-const long interval = 1000;
-unsigned long previousMillis = 0;
-int count = 0;
 void loop()
 {
-  if (powerButton.pressed()) {
-    ioex.output(0, TCA9534::Level::H);
-    digitalWrite(POWER_EN_3V3, HIGH);
-    Serial.println("powerButton 1 pressed");
-  }
-
-  if (powerButton.released()) {
-    ioex.output(0, TCA9534::Level::L);
-    digitalWrite(POWER_EN_3V3, LOW);
-  }
-
-  mqttClient.poll();
-
-  unsigned long currentMillis = millis();
-  
-  if (currentMillis - previousMillis >= interval) {
-    // save the last time a message was sent
-    previousMillis = currentMillis;
-
-    Serial.println("Sending message to topic");
-
-    // send message, the Print interface can be used to set the message contents
-    mqttClient.beginMessage("arduino/test");
-    mqttClient.print("hello ");
-    mqttClient.print(count);
-    mqttClient.endMessage();
-
-    Serial.println();
-
-    count++;
-  }
-
+  inputPowerKey.read(); 
 }
