@@ -4,34 +4,17 @@
 
 #include <Arduino.h>
 #include <Button.h>
-#include <Outputs.h>
-
-class IInput {
-    public:
-    enum Type {
-        Analog,
-        Digital
-    };
-    Type type;
-    IInput(Type type) : type(type) {
-    }
-    virtual ~IInput() {
-    }
- 
-    virtual void begin() = 0;
-    virtual int read() = 0;
-};
+#include <IOutput.h>
+#include <AbstractDigitalInput.h>
 
 class InputGpio : public IInput {
     pin_size_t gpio;
-    public:
+public:
     InputGpio(pin_size_t gpio) : IInput(Digital), gpio(gpio) {
-        pinMode(gpio, INPUT); 
+        pinMode(gpio, INPUT);
     }
 
-    void begin() {
-
-    }
+    void begin() {}
 
     int read() {
         return digitalRead(gpio);
@@ -44,41 +27,41 @@ class InputButton : public IInput {
     bool toggle = false;
     IOutput* output = nullptr;
 
-    public:
+public:
     InputButton(uint8_t pin, bool toggle) : IInput(Digital), button(pin), toggle(toggle) {
         button.begin();
     }
 
-    InputButton(uint8_t pin, bool toggle, IOutput* output) : IInput(Digital), button(pin), toggle(toggle), output(output) {
-        button.begin();
+    void connectOutput(IOutput* output) {
+        this->output = output;
     }
 
-    void begin() {
-        if (output) {
+    void begin() override {
+        if(output) {
             output->write(buffer);
-        }       
+        }
     }
 
-    int read() {
+    int onRead() override {
         bool changed = false;
         if(toggle) {
             if(button.released()) {
-                buffer = !buffer; 
+                buffer = !buffer;
                 changed = true;
             }
         } else {
-             if(button.pressed()) {
-                buffer = true; 
+            if(button.pressed()) {
+                buffer = true;
                 changed = true;
-            }           
+            }
             if(button.released()) {
                 buffer = false;
-                changed = true; 
+                changed = true;
             }
         }
 
-        if (changed) {
-            if (output) {
+        if(changed) {
+            if(output) {
                 output->write(buffer);
             }
         }
@@ -89,14 +72,12 @@ class InputButton : public IInput {
 
 class InputAnalog : public IInput {
     pin_size_t pin;
-    public:
-    InputAnalog(pin_size_t pin) : IInput(Digital), pin(pin) {
-    }
+public:
+    InputAnalog(pin_size_t pin) : IInput(Digital), pin(pin) {}
 
-    void begin() {
-    }
+    void begin() override {}
 
-    virtual int read() {
+    int onRead() override {
         return analogRead(pin);
     }
 };
